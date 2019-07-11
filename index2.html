@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+ <head>
+  <meta charset="utf-8"/>
+<script src='perlin.js'></script>
+  <script type="application/javascript">
+    function draw() {
+      var canvas = document.getElementById("canvas");
+		if (canvas.getContext) {
+			var ctx = canvas.getContext("2d");
+			
+			var colors = [];
+			var nodes = [];
+			var temp = [];
+			var tileWidth = 8;
+			var tileHeight = tileWidth/2;
+			var el;
+			var x = canvas.width/2;
+			var y = 0;
+			var length = 150;
+
+			//colors = ExcelNoise(length);
+			//colors = LerpMap(colors);
+			//colors = LerpMap(colors);
+			//window.alert(colors[2]);
+			
+			//somewhere between 5 - 20 is good
+			var smooth = 12;
+			var divisor = 1000;
+			//must be less than 2.5
+			var iper = 4;
+			var ioff = 0.2;
+			var jper = 1;
+			var ictrl = 2;
+			var jctrl = 1;
+			
+			for (i = 0; i < length; i++) {
+				for (j = 0; j < length; j++) {
+					colors[i + j*length] = ((Math.sin(iper * i/length * Math.PI + ioff) + Math.sin(jper * j/length * Math.PI))/2 + 1 * Math.abs(noise.perlin2(i/smooth, j/smooth)) + 0.5*Math.abs(noise.perlin2(i/(divisor*smooth), j/(divisor*smooth))) + 0.25 * Math.abs(noise.perlin2(i / (divisor * 2 * smooth), j / (divisor * 2 * smooth))) + 0.125 * Math.abs(noise.perlin2(i / (divisor * 3 * smooth), j / (divisor * 2 * smooth))) + 0.0625*Math.abs(noise.perlin2(i / (divisor * 4 * smooth), j / (divisor * 4 * smooth))))/2;
+					colors[i + j * length] *= Math.sin(i/length * Math.PI) * ictrl * Math.sin(i/length * Math.PI); 
+					colors[i + j * length] *= Math.sin(j/length * Math.PI) * jctrl * Math.sin(j/length * Math.PI);
+				//	colors[i + j * length] *= colors[i + j * length];
+				}
+			}
+			
+			colors = LerpMap(colors);
+
+			//nodes = FindNodes(colors, length);
+			
+			//make temperature map
+			for (i = 0; i < length; i++) {
+				for (j = 0; j < length; j++) {
+					if (colors[i + j * length] < 0.15) {
+						temp[i + j * length] = 24;
+					} else {
+						
+					}
+				}
+			}	
+			
+			for (i = 0; i < length; i++) {
+				for (j = 0; j < length; j++) {
+					drawTile(x + tileWidth/2 * (i - j), y + tileHeight/2 * (i + j), colors[i * length + j], colors[i*length+j] * colors[i*length+j] * 30, nodes);
+				}
+			}
+		}
+	  
+		function drawTile(x, y, color, el, nodes) {		
+			ctx.beginPath();
+			ctx.moveTo(x, y - el);
+			ctx.lineTo(x + tileWidth/2, y + tileHeight/2 - el);
+			ctx.lineTo(x, y + tileHeight - el);
+			ctx.lineTo(x - tileWidth/2, y + tileHeight/2 - el);
+			ctx.lineTo(x, y-el);
+			if (color < 0) {
+				ctx.fillStyle = '#990000';
+				ctx.strokeStyle = '#990000';
+			} else if (color < 0.05) {
+				ctx.fillStyle = '#224477';
+				ctx.strokeStyle = '#224477';
+			} else if (color < 0.15) {
+				ctx.fillStyle = '#445599';
+				ctx.strokeStyle = '#445599';
+			} else if (color < 0.65) {
+				ctx.fillStyle = '#009900';
+				ctx.strokeStyle = '#009900';
+			} else if (color <= 1) {
+				ctx.fillStyle = '#006600';
+				ctx.strokeStyle = '#006600';
+			} else {
+				ctx.fillStyle = '#770000';
+				ctx.strokeStyle = '#770000';
+			}
+			ctx.fill();
+			//ctx.strokeStyle = 'gray';
+			ctx.stroke();
+			
+			ctx.beginPath();
+			ctx.moveTo(x + tileWidth/2, y + tileHeight/2 - el);
+			ctx.lineTo(x + tileWidth/2, y + tileHeight/2 + 3);
+			ctx.lineTo(x, y + tileHeight+ 3);
+			ctx.lineTo(x - tileWidth/2, y + tileHeight/2 + 3);
+			ctx.lineTo(x - tileWidth/2, y + tileHeight/2 - el);
+			ctx.lineTo(x, y + tileHeight - el);
+			ctx.lineTo(x + tileWidth/2, y + tileHeight/2 - el);
+			ctx.fillStyle = '#843d00';
+			ctx.fill();
+			ctx.strokeStyle = 'gray';
+			ctx.stroke();
+			
+		}
+    }
+	
+	function ExcelNoiseTwo(length) {
+		var map = [];
+		var store = [];
+		var f = 10;
+		var high, low;
+		
+		//from north
+		for (i = 0; i < length; i++) {
+			for (j = 0; j < length; j++) {
+			
+			var k = i + j;
+			
+			if (i == 0) {
+				high = Math.random();
+				low = high;
+				map.push(high);
+			} else if (i < length) {
+				map.push(map[i-1] + (Math.random()-0.5)/F);
+			} else if (i % length == 0) {
+				map.push(map[i-length] + (Math.random()-0.5)/F)
+			} else {
+			map.push((map[i-length] + map[i-1])/2 + (Math.random()-0.5)/F)
+			}
+			
+			if (map[i] > high) {
+				high = map[i];
+			} else if (map[i] < low) {
+				low = map[i];
+			}
+			}
+		}
+		
+		//from south
+		for (i = length; i > 0; i--) {
+			for (j = length; j > 0; j--) {
+			
+			var k = i + j;
+			
+			if (i == 0) {
+				high = Math.random();
+				low = high;
+				map.push(high);
+			} else if (i < length) {
+				map.push(map[i-1] + (Math.random()-0.5)/F);
+			} else if (i % length == 0) {
+				map.push(map[i-length] + (Math.random()-0.5)/F)
+			} else {
+			map.push((map[i-length] + map[i-1])/2 + (Math.random()-0.5)/F)
+			}
+			
+			if (map[i] > high) {
+				high = map[i];
+			} else if (map[i] < low) {
+				low = map[i];
+			}
+			}
+		}
+	}
+	
+		function ExcelNoise(length) {
+		var map = [];
+		var F = 10;		
+		var high, low;
+		//for (i = 0; i < mapSize; i++) {
+		//	map.push(Math.random());
+		//}
+		
+		window.alert("I shouldn't see this");
+
+		for (i = 0; i < length * length; i++) {
+			if (i == 0) {
+				high = Math.random();
+				low = high;
+				map.push(high);
+			} else if (i < length) {
+				map.push(map[i-1] + (Math.random()-0.5)/F);
+			} else if (i % length == 0) {
+				map.push(map[i-length] + (Math.random()-0.5)/F)
+			} else {
+			map.push((map[i-length] + map[i-1])/2 + (Math.random()-0.5)/F)
+			}
+			
+			if (map[i] > high) {
+				high = map[i];
+			} else if (map[i] < low) {
+				low = map[i];
+			}
+		}
+		
+		for (i = 0; i < length * length; i++) {
+			map[i] = map[i]/high;
+		}
+		//window.alert(map[2]);
+		
+		return map;
+	}
+	
+	function LerpMap(arr) {
+		var high = 0, low = 0, offset;
+		
+		for (i = 0; i < arr.length; i++) {
+			if (arr[i] > high) {
+				high = arr[i];
+			}
+			if (arr[i] < low) {
+				low = arr[i];
+			}
+		}
+		
+		offset = low/(high - low);
+		
+		for (i = 0; i < arr.length; i++) {
+			arr[i] = arr[i]/(high - low) - offset;
+			if (arr[i] < 0) {
+				window.alert("low: " + arr[i]);
+				arr[i] = 0;
+			}
+			
+			if (arr[i] > 1) {
+				window.alert("high: " + arr[i]);
+				arr[i] = 1;
+			}
+		}
+		
+		return arr;
+	}
+	
+	function FindNodes(arr, length) {
+		var nodes = [];
+		var x1, x2, y1, y2;
+		
+		for (i = 0; i < (length + 1)*(length + 1); i++) {
+			x1 = i - 1;
+			x2 = i + 1;
+			y1 = i - (length + 1);
+			y2 = i + (length + 1);
+			nodes.push((x1 + x2 + y1 + y2)/4);
+		}
+		return nodes;
+	}
+  </script>
+ </head>
+ <body onload="draw();">
+   <canvas id="canvas" width="1600" height="800"></canvas>
+ </body>
+</html>
